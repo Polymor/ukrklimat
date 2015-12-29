@@ -31,6 +31,12 @@ class ParentEmail extends \MY_Controller {
      * @var string
      */
     protected $send_to;
+    
+    /**
+     * Admin emails array
+     * @var array
+     */
+    protected $send_to_array;
 
     /**
      * Attachment file
@@ -200,18 +206,23 @@ class ParentEmail extends \MY_Controller {
         if ($patern_settings['admin_message_active']) {
             $this->from_email = $patern_settings['from_email'];
             $this->from = $patern_settings['from'];
-
-            if ($patern_settings['admin_email']) {
-                $this->send_to = $patern_settings['admin_email'];
-            } else {
-                $this->send_to = $default_settings['admin_email'];
-            }
+        //TODO  отправку по всем существующим e-mail'ам администратора        
+        if ($patern_settings['admin_email3']) {
+            $this->send_to_array['admin_email3']=$patern_settings['admin_email3'];                
+        } if ($patern_settings['admin_email2']) {
+            $this->send_to_array['admin_email2']=$patern_settings['admin_email2'];
+        } if ($patern_settings['admin_email']) {
+            $this->send_to_array['admin_email']=$patern_settings['admin_email'];
+        }
+        else {
+            $this->send_to = $default_settings['admin_email'];
+        }      
 
             $this->theme = $patern_settings['theme'];
             $this->message = $this->replaceVariables($patern_settings['admin_message'], $variables);
             $this->attachment = $attachment;
 
-            if (!$this->_sendEmail()) {
+            if (!$this->_sendEmailToAdmins()) {
                 $this->errors[] = lang('User message doesnt send', 'cmsemail');
             } else {
                 //Registering event is success
@@ -219,7 +230,7 @@ class ParentEmail extends \MY_Controller {
                         array(
                     'from' => $this->from,
                     'from_email' => $this->from_email,
-                    'send_to' => $this->send_to,
+                    'send_to' => $this->send_to_array['admin_email'],
                     'theme' => $this->theme,
                     'message' => $this->message
                         ), 'ParentEmail:adminSend');
@@ -352,7 +363,7 @@ class ParentEmail extends \MY_Controller {
      *
      * @return bool
      */
-    private function _sendEmail() {
+    private function _sendEmail() {              
         $this->email->from($this->from_email, $this->from);
         $this->email->to($this->send_to);
         $this->email->subject($this->theme);
@@ -363,6 +374,22 @@ class ParentEmail extends \MY_Controller {
         }
 
         return $this->email->send();
+        
+    }private function _sendEmailToAdmins() {
+        $result = FALSE;                
+    foreach ($this->send_to_array as $send_address) {
+        $this->email->from($this->from_email, $this->from);
+        $this->email->to($send_address);
+        $this->email->subject($this->theme);
+        $this->email->message($this->message);
+
+        if ($this->attachment && file_exists($this->attachment)) {
+            $this->email->attach($this->attachment);
+        }
+
+        $result = $this->email->send();
+    }
+        return $result;
     }
 
     /**
