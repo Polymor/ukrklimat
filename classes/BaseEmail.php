@@ -1,3 +1,4 @@
+1
 <?php
 
 namespace cmsemail\classes;
