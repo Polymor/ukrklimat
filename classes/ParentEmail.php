@@ -112,9 +112,10 @@ class ParentEmail extends \MY_Controller {
 
     public function __construct() {
         parent::__construct();
-        $modulePath = getModulePath('cmsemail');
-        $this->load->model('../' . getModContDirName('cmsemail') . '/cmsemail/models/cmsemail_model');
-        (new \MY_Lang())->load('cmsemail');
+
+        $this->load->model('../modules/cmsemail/models/cmsemail_model');
+        $lang = new \MY_Lang();
+        $lang->load('cmsemail');;
     }
 
     /**
@@ -375,7 +376,9 @@ class ParentEmail extends \MY_Controller {
 
         return $this->email->send();
         
-    }private function _sendEmailToAdmins() {
+    }
+    
+    private function _sendEmailToAdmins() {
         $result = FALSE;                
     foreach ($this->send_to_array as $send_address) {
         $this->email->from($this->from_email, $this->from);
